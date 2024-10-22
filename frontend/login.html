@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { width: 300px; margin: 100px auto; text-align: center; }
+    input { padding: 10px; margin: 10px; width: 100%; }
+    button { padding: 10px; width: 100%; }
+    p.error { color: red; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <p id="error" class="error"></p>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        document.getElementById('error').innerText = "Both fields are required!";
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:3000/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Login failed');
+        }
+
+        const data = await response.json();
+
+        // Store JWT token in localStorage
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('username', username);
+
+        // Redirect to chatroom page
+        window.location.href = 'chat.html';
+
+      } catch (error) {
+        document.getElementById('error').innerText = error.message;
+      }
+    });
+  </script>
+</body>
+</html>

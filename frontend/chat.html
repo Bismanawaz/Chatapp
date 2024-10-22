@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatroom</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { width: 500px; margin: 100px auto; }
+    .message-list { height: 300px; border: 1px solid #ddd; padding: 10px; overflow-y: scroll; }
+    .message { margin-bottom: 10px; }
+    input { padding: 10px; margin: 10px 0; width: calc(100% - 20px); }
+    button { padding: 10px; width: 100%; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Chatroom</h2>
+    <div class="message-list" id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type your message here" />
+    <button id="sendButton">Send</button>
+    <p id="error" class="error"></p>
+  </div>
+
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = localStorage.getItem('access_token');
+      const username = localStorage.getItem('username');
+
+      if (!token || !username) {
+        document.getElementById('error').innerText = 'You need to login first!';
+        return;
+      }
+
+      const socket = io('http://localhost:3000', {
+        auth: { token }
+      });
+
+      const messagesContainer = document.getElementById('messages');
+      const messageInput = document.getElementById('messageInput');
+      const sendButton = document.getElementById('sendButton');
+
+      socket.on('connect', () => {
+        console.log('Connected to server');
+      });
+
+      socket.on('disconnect', () => {
+        document.getElementById('error').innerText = 'Disconnected from server!';
+      });
+
+      // Listening for new messages
+      socket.on('message', (data) => {
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('message');
+        messageElement.innerText = `${data.username}: ${data.message}`;
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Auto scroll to bottom
+      });
+
+      sendButton.addEventListener('click', () => {
+        const message = messageInput.value;
+        if (message) {
+          socket.emit('message', { message });
+          messageInput.value = ''; // Clear the input field
+        }
+      });
+
+      // Join chat when connected
+      socket.emit('join');
+    });
+  </script>
+</body>
+</html>

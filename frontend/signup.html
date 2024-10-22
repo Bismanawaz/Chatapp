@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signup</title>
+</head>
+<body>
+  <form id="signupForm">
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      console.log("Submitting with", username, password); // Debugging: Check if values are correct
+
+      const response = await fetch('http://localhost:3000/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      });
+
+      // Debugging: Check if the response is valid
+      const data = await response.json();
+      console.log('Response:', data);
+
+      if (response.ok) {
+        alert('Signup successful');
+        document.getElementById('signupForm').reset();
+      } else {
+        alert('Signup failed: ' + (data.message || 'Unknown error'));
+      }
+    });
+  </script>
+</body>
+</html>
